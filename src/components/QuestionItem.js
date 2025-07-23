@@ -1,7 +1,6 @@
 import React from "react";
 
 function QuestionItem({ question, onDelete, onUpdate }) {
-  if (!question) return null;
   const { id, prompt, answers, correctIndex } = question;
 
   const options = answers.map((answer, index) => (
@@ -18,6 +17,7 @@ function QuestionItem({ question, onDelete, onUpdate }) {
 
   function handleCorrectAnswerChange(e) {
     const newIndex = parseInt(e.target.value);
+
     fetch(`http://localhost:4000/questions/${id}`, {
       method: "PATCH",
       headers: {
@@ -26,7 +26,7 @@ function QuestionItem({ question, onDelete, onUpdate }) {
       body: JSON.stringify({ correctIndex: newIndex }),
     })
       .then((r) => r.json())
-      .then(onUpdate);
+      .then((updatedQuestion) => onUpdate(updatedQuestion));
   }
 
   return (
@@ -36,9 +36,9 @@ function QuestionItem({ question, onDelete, onUpdate }) {
       <label>
         Correct Answer:
         <select
+          aria-label="Correct Answer"
           value={correctIndex}
           onChange={handleCorrectAnswerChange}
-          aria-label="Correct Answer"
         >
           {options}
         </select>
@@ -49,4 +49,3 @@ function QuestionItem({ question, onDelete, onUpdate }) {
 }
 
 export default QuestionItem;
-

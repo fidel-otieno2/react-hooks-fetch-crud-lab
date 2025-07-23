@@ -1,14 +1,14 @@
-// src/__tests__/App.test.js
 import React from "react";
 import "whatwg-fetch"; // Polyfill fetch for tests
 import {
   fireEvent,
   render,
   screen,
+  waitFor,
   waitForElementToBeRemoved,
 } from "@testing-library/react";
 
-// ⚠️ DO NOT IMPORT THIS in CodeGrade: it breaks due to optional chaining
+// ❌ DO NOT import this in CodeGrade
 // import "@testing-library/jest-dom/extend-expect";
 
 import { server } from "../mocks/server";
@@ -45,6 +45,12 @@ test("creates a new question when the form is submitted", async () => {
   fireEvent.change(screen.getByLabelText(/Answer 2/i), {
     target: { value: "Answer B" },
   });
+  fireEvent.change(screen.getByLabelText(/Answer 3/i), {
+    target: { value: "Answer C" },
+  });
+  fireEvent.change(screen.getByLabelText(/Answer 4/i), {
+    target: { value: "Answer D" },
+  });
   fireEvent.change(screen.getByLabelText(/Correct Answer/i), {
     target: { value: "1" },
   });
@@ -77,10 +83,16 @@ test("updates the answer when the dropdown is changed", async () => {
   const dropdowns = await screen.findAllByLabelText(/Correct Answer/i);
   fireEvent.change(dropdowns[0], { target: { value: "3" } });
 
-  expect(dropdowns[0].value).toBe("3");
+  // Ensure change applied
+  await waitFor(() => {
+    expect(dropdowns[0].value).toBe("3");
+  });
 
+  // Refresh questions to confirm persistence
   fireEvent.click(screen.getByText(/View Questions/));
-
   const updatedDropdowns = await screen.findAllByLabelText(/Correct Answer/i);
-  expect(updatedDropdowns[0].value).toBe("3");
+
+  await waitFor(() => {
+    expect(updatedDropdowns[0].value).toBe("3");
+  });
 });
