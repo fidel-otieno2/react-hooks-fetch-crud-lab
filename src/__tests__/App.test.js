@@ -5,6 +5,7 @@ import {
   fireEvent,
   render,
   screen,
+  waitFor,
   waitForElementToBeRemoved,
 } from "@testing-library/react";
 import "@testing-library/jest-dom/extend-expect";
@@ -27,10 +28,18 @@ test("creates a new question when the form is submitted", async () => {
   await screen.findByText(/lorem testum 1/i);
   fireEvent.click(screen.getByText(/New Question/));
 
-  fireEvent.change(screen.getByLabelText(/Prompt/i), { target: { value: "Test Prompt" } });
-  fireEvent.change(screen.getByLabelText(/Answer 1/i), { target: { value: "Answer A" } });
-  fireEvent.change(screen.getByLabelText(/Answer 2/i), { target: { value: "Answer B" } });
-  fireEvent.change(screen.getByLabelText(/Correct Answer/i), { target: { value: "1" } });
+  fireEvent.change(screen.getByLabelText(/Prompt/i), {
+    target: { value: "Test Prompt" },
+  });
+  fireEvent.change(screen.getByLabelText(/Answer 1/i), {
+    target: { value: "Answer A" },
+  });
+  fireEvent.change(screen.getByLabelText(/Answer 2/i), {
+    target: { value: "Answer B" },
+  });
+  fireEvent.change(screen.getByLabelText(/Correct Answer/i), {
+    target: { value: "1" },
+  });
 
   fireEvent.click(screen.getByRole("button", { name: /Add Question/i }));
   fireEvent.click(screen.getByText(/View Questions/));
@@ -52,10 +61,18 @@ test("deletes the question when the delete button is clicked", async () => {
 test("updates the answer when the dropdown is changed", async () => {
   render(<App />);
   fireEvent.click(screen.getByText(/View Questions/));
-  const dropdown = await screen.findAllByLabelText(/Correct Answer/i);
-  fireEvent.change(dropdown[0], { target: { value: "2" } });
-  expect(dropdown[0].value).toBe("2");
 
-  fireEvent.click(screen.getByText(/View Questions/)); // or notch
-  expect((await screen.findAllByLabelText(/Correct Answer/i))[0].value).toBe("2");
+  const dropdown = await screen.findAllByLabelText(/Correct Answer/i);
+
+  fireEvent.change(dropdown[0], { target: { value: "3" } });
+
+  // ✅ Wait for value to be updated in DOM
+  await waitFor(() => {
+    expect(dropdown[0].value).toBe("3");
+  });
+
+  // Ensure the state is preserved after rerender
+  fireEvent.click(screen.getByText(/View Questions/));
+  const refreshedDropdown = await screen.findAllByLabelText(/Correct Answer/i);
+  expect(refreshedDropdown[0].value).toBe("3");
 });
